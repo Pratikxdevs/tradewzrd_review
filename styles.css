@@ -1,50 +1,116 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Arial, sans-serif; background: #0b0e14; color: #e8ecf3; line-height: 1.6; }
-.container { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
 
-.nav { position: sticky; top: 0; background: rgba(11,14,20,.92); backdrop-filter: blur(8px); border-bottom: 1px solid #1c2333; z-index: 10; }
-.nav-inner { display: flex; justify-content: space-between; align-items: center; height: 60px; }
-.logo { font-weight: 800; font-size: 20px; }
-.logo span { color: #4ade80; }
+html, body { height: 100%; }
 
-.btn { display: inline-block; background: #4ade80; color: #06210f; font-weight: 700; text-decoration: none; border: none; cursor: pointer; border-radius: 10px; padding: 12px 22px; transition: transform .1s, opacity .2s; }
-.btn:hover { opacity: .92; transform: translateY(-1px); }
-.btn-big { font-size: 18px; padding: 15px 34px; }
-.btn-small { padding: 9px 16px; font-size: 14px; }
-.btn-ghost { background: #161d2e; color: #e8ecf3; border: 1px solid #2a3550; }
-.btn-ghost:hover { border-color: #4ade80; }
-
-.hero { padding: 64px 0 30px; text-align: center; background: radial-gradient(600px 300px at 50% -50px, rgba(74,222,128,.18), transparent); }
-.badge { display: inline-block; background: #161d2e; border: 1px solid #2a3550; padding: 8px 16px; border-radius: 100px; font-size: 14px; margin-bottom: 20px; }
-.hero h1 { font-size: clamp(28px, 5vw, 48px); line-height: 1.15; max-width: 800px; margin: 0 auto 16px; }
-.highlight { color: #4ade80; }
-.sub { color: #9aa6bf; max-width: 640px; margin: 0 auto 26px; font-size: 18px; }
-.micro { margin-top: 10px; font-size: 13px; color: #9aa6bf; }
-.stats { display: flex; gap: 32px; justify-content: center; margin-top: 36px; flex-wrap: wrap; }
-.stats div { display: flex; flex-direction: column; }
-.stats strong { font-size: 24px; }
-.stats span { color: #9aa6bf; font-size: 14px; }
-
-.reviews-head { text-align: center; margin: 40px 0 24px; }
-.reviews-head h2 { font-size: 28px; margin-bottom: 8px; }
-.reviews-head p { color: #9aa6bf; margin-bottom: 16px; }
-
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
-.card { background: #121826; border: 1px solid #202a44; border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 10px; }
-.card .stars { color: #fbbf24; letter-spacing: 2px; font-size: 15px; }
-.card p.text { color: #c9d3e6; font-size: 15px; flex: 1; }
-.card .meta { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
-.card .name { font-weight: 700; font-size: 14px; }
-.card .tag { font-size: 12px; color: #4ade80; background: rgba(74,222,128,.12); padding: 3px 10px; border-radius: 100px; }
-
-.more-wrap { text-align: center; margin: 28px 0; }
-.final-cta { text-align: center; background: #121826; border: 1px solid #202a44; border-radius: 18px; padding: 44px 24px; margin: 20px 0 30px; }
-.final-cta h3 { font-size: 28px; margin-bottom: 8px; }
-.final-cta p { color: #9aa6bf; margin-bottom: 20px; }
-footer { text-align: center; color: #6b7690; font-size: 13px; padding-bottom: 40px; }
-footer a { color: #4ade80; }
-
-@media (max-width: 600px) {
-  .hero { padding: 44px 0 20px; }
-  .sub { font-size: 16px; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif;
+  background: #07080c;
+  color: #eceff4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
+
+/* faint artistic backdrop: two glows + film grain via repeating gradient */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(520px 340px at 50% 18%, rgba(139, 92, 246, .16), transparent 70%),
+    radial-gradient(620px 420px at 50% 110%, rgba(34, 211, 238, .10), transparent 70%);
+  pointer-events: none;
+}
+
+.stage {
+  text-align: center;
+  padding: 32px 20px 56px;
+  max-width: 640px;
+  width: 100%;
+}
+
+.eyebrow {
+  font-size: 12px;
+  letter-spacing: .35em;
+  text-transform: uppercase;
+  color: #5b6478;
+  margin-bottom: 26px;
+}
+
+#dice {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: clamp(110px, 28vw, 170px);
+  line-height: 1;
+  color: #f4f4f5;
+  transition: color .25s, transform .15s;
+  filter: drop-shadow(0 0 34px rgba(139, 92, 246, .35));
+}
+
+#dice:hover { color: #fff; transform: scale(1.04); }
+#dice:active { transform: scale(.96); }
+#dice:disabled { cursor: default; }
+
+#dice.tumbling { animation: tumble .12s linear infinite; }
+
+@keyframes tumble {
+  0% { transform: rotate(-8deg) translateY(-4px); }
+  50% { transform: rotate(8deg) translateY(3px); }
+  100% { transform: rotate(-8deg) translateY(-4px); }
+}
+
+.hint { margin-top: 10px; color: #8b93a7; font-size: 14px; }
+.count { margin-top: 4px; color: #4c5468; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+
+#card {
+  margin: 34px auto 0;
+  text-align: left;
+  border-top: 1px solid #232838;
+  padding-top: 26px;
+  animation: rise .45s ease both;
+  max-width: 560px;
+}
+
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+#card .stars { color: #e8b64c; letter-spacing: 3px; font-size: 15px; margin-bottom: 12px; }
+
+#text {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 19px;
+  line-height: 1.65;
+  color: #d7dce6;
+}
+
+#card .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+
+#name { color: #5b6478; font-size: 13px; letter-spacing: .08em; }
+
+#copy {
+  background: transparent;
+  color: #eceff4;
+  border: 1px solid #3a4358;
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color .2s, background .2s;
+}
+
+#copy:hover:not(:disabled) { border-color: #8b5cf6; background: rgba(139, 92, 246, .12); }
+#copy:disabled { opacity: .45; cursor: default; }
+#copy.done { border-color: #34d399; color: #34d399; }

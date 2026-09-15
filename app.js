@@ -3,10 +3,6 @@
 // ============================================================
 const REDIRECT_URL = "https://www.trustpilot.com/evaluate/tradewzrd.com";
 
-// How many reviews to show on first load (random between MIN and MAX)
-const MIN_SHOW = 6;
-const MAX_SHOW = 9;
-
 // ============================================================
 // 2. ALL 50 REVIEWS
 // ============================================================
@@ -64,9 +60,21 @@ const REVIEWS = [
 ];
 
 // ============================================================
-// 3. RANDOM UNIQUE LOGIC — no repeats per view
-// Fisher-Yates shuffle, then slice. Each reload = new shuffle.
+// 3. DICE LOGIC — shuffled deck, no repeats until all 50 shown
 // ============================================================
+const FACES = ["\u2680", "\u2681", "\u2682", "\u2683", "\u2684", "\u2685"];
+const diceEl = document.getElementById("dice");
+const cardEl = document.getElementById("card");
+const starsEl = document.getElementById("stars");
+const textEl = document.getElementById("text");
+const nameEl = document.getElementById("name");
+const copyEl = document.getElementById("copy");
+const leftEl = document.getElementById("left");
+
+let deck = [];
+let current = null;
+let rolling = false;
+
 function shuffle(arr) {
   const a = [...arr];
   for (let i = a.length - 1; i > 0; i--) {
@@ -76,64 +84,78 @@ function shuffle(arr) {
   return a;
 }
 
-function randomCount() {
-  return Math.floor(Math.random() * (MAX_SHOW - MIN_SHOW + 1)) + MIN_SHOW;
+function updateLeft() {
+  leftEl.textContent = deck.length;
 }
 
-let shuffled = [];
-let shown = 0;
+function roll() {
+  if (rolling) return;
+  rolling = true;
+  diceEl.disabled = true;
+  copyEl.disabled = true;
+  copyEl.classList.remove("done");
+  copyEl.textContent = "\u29C9 copy review";
+  cardEl.hidden = true;
+  diceEl.classList.add("tumbling");
 
-function stars(n) {
-  return "★".repeat(n) + "☆".repeat(5 - n);
+  const total = 12 + Math.floor(Math.random() * 6);
+  let ticks = 0;
+  const timer = setInterval(() => {
+    diceEl.textContent = FACES[Math.floor(Math.random() * FACES.length)];
+    if (++ticks >= total) {
+      clearInterval(timer);
+      if (deck.length === 0) deck = shuffle(REVIEWS); // fresh deck, reshuffle
+      current = deck.pop();
+      diceEl.textContent = FACES[Math.floor(Math.random() * FACES.length)];
+      diceEl.classList.remove("tumbling");
+      starsEl.textContent = "\u2605".repeat(current.stars) + "\u2606".repeat(5 - current.stars);
+      textEl.textContent = current.text;
+      nameEl.textContent = current.name + " · verified";
+      cardEl.hidden = false;
+      // restart rise animation
+      cardEl.style.animation = "none";
+      void cardEl.offsetWidth;
+      cardEl.style.animation = "";
+      copyEl.disabled = false;
+      diceEl.disabled = false;
+      rolling = false;
+      updateLeft();
+    }
+  }, 70);
 }
 
-function renderCards(list) {
-  const grid = document.getElementById("reviews-grid");
-  list.forEach((r) => {
-    const div = document.createElement("div");
-    div.className = "card";
-    div.innerHTML =
-      '<div class="stars">' + stars(r.stars) + '</div>' +
-      '<p class="text"></p>' +
-      '<div class="meta"><div class="name"></div><div class="tag">Verified ✓</div></div>';
-    div.querySelector(".text").textContent = r.text;
-    div.querySelector(".name").textContent = r.name;
-    grid.appendChild(div);
-  });
-  document.getElementById("shown-count").textContent = shown + " / " + REVIEWS.length;
-  const moreBtn = document.getElementById("more-btn");
-  if (shown >= REVIEWS.length) {
-    moreBtn.style.display = "none";
-  } else {
-    moreBtn.style.display = "";
+function fallbackCopy(text) {
+  const ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand("copy");
+  } catch (e) {
+    // ignore — redirect still happens below
   }
+  document.body.removeChild(ta);
 }
 
-function initialLoad() {
-  shuffled = shuffle(REVIEWS); // full unique shuffle, no repeats
-  shown = 0;
-  document.getElementById("reviews-grid").innerHTML = "";
-  const n = randomCount(); // random NUMBER of reviews per visitor
-  const batch = shuffled.slice(0, n);
-  shown = batch.length;
-  renderCards(batch);
+async function copyAndGo() {
+  if (!current || copyEl.disabled) return;
+  try {
+    await navigator.clipboard.writeText(current.text);
+  } catch (e) {
+    fallbackCopy(current.text);
+  }
+  copyEl.classList.add("done");
+  copyEl.textContent = "copied \u2713";
+  copyEl.disabled = true;
+  setTimeout(() => {
+    window.location.href = REDIRECT_URL;
+  }, 800);
 }
 
-function showMore() {
-  const next = shuffled.slice(shown, shown + 6);
-  shown += next.length;
-  renderCards(next);
-}
+diceEl.addEventListener("click", roll);
+copyEl.addEventListener("click", copyAndGo);
 
-document.getElementById("shuffle-btn").addEventListener("click", initialLoad);
-document.getElementById("more-btn").addEventListener("click", showMore);
-
-// ============================================================
-// 4. REDIRECT WIRING — all CTAs go to your link
-// ============================================================
-["nav-cta", "hero-cta", "bottom-cta", "footer-link"].forEach((id) => {
-  const el = document.getElementById(id);
-  if (el) el.href = REDIRECT_URL;
-});
-
-initialLoad();
+deck = shuffle(REVIEWS);
+updateLeft();
